@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AtlasQuest Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo">🌐</div>
+          <div>
+            <h1>AtlasQuest Arena</h1>
+            <p>Squad up, pinpoint the globe, flex your style.</p>
+          </div>
+        </div>
+        <nav class="topbar-actions">
+          <button id="storeButton" class="ghost">Cosmetics</button>
+          <button id="reportsButton" class="ghost">Reports</button>
+          <button id="profileButton" class="ghost">Profile</button>
+        </nav>
+      </header>
+
+      <main class="layout">
+        <aside class="panel lobby" id="lobbyPanel">
+          <div class="panel-header">
+            <h2>Lobby</h2>
+            <span id="connectionBadge" class="badge offline">Offline</span>
+          </div>
+          <div class="lobby-section">
+            <div class="field">
+              <label for="roomCodeInput">Room code</label>
+              <div class="field-row">
+                <input id="roomCodeInput" type="text" maxlength="6" placeholder="Enter code" />
+                <button id="createRoomButton" class="primary">Create</button>
+                <button id="joinRoomButton" class="ghost">Join</button>
+              </div>
+            </div>
+            <div class="mode-switch">
+              <span>Ranked mode</span>
+              <label class="switch">
+                <input id="rankedToggle" type="checkbox" />
+                <span></span>
+              </label>
+            </div>
+            <div id="banNotice" class="notice hidden"></div>
+          </div>
+          <div class="lobby-section">
+            <div class="panel-subheader">
+              <h3>Players</h3>
+              <span id="playerCount">0</span>
+            </div>
+            <ul id="playerList" class="player-list"></ul>
+          </div>
+          <div class="lobby-section chat">
+            <div class="panel-subheader">
+              <h3>Lobby chat</h3>
+            </div>
+            <div id="chatLog" class="chat-log"></div>
+            <form id="chatForm" class="chat-form">
+              <input id="chatInput" type="text" maxlength="140" placeholder="Send a message" />
+              <button type="submit" class="ghost">Send</button>
+            </form>
+          </div>
+        </aside>
+
+        <section class="panel game" id="gamePanel">
+          <div class="panel-header">
+            <h2 id="gameStatus">Waiting for host…</h2>
+            <div class="round-info">
+              <span id="roundCounter">Round 0 / 0</span>
+              <span id="timerDisplay">--:--</span>
+            </div>
+          </div>
+          <div class="game-body">
+            <div class="scene" id="sceneContainer">
+              <div class="scene-overlay" id="sceneOverlay">
+                <p>Select or create a lobby to begin.</p>
+              </div>
+              <img id="sceneImage" src="" alt="Location clue" />
+            </div>
+            <div class="map-column">
+              <div id="map" class="map"></div>
+              <div class="map-actions">
+                <button id="centerButton" class="ghost">Reset view</button>
+                <button id="lockGuessButton" class="primary" disabled>Lock guess</button>
+                <button id="revealButton" class="ghost" disabled>Reveal</button>
+              </div>
+              <div id="feedback" class="feedback"></div>
+            </div>
+            <div class="info-column">
+              <div class="clue-card">
+                <h3>Clue</h3>
+                <p id="clueText">—</p>
+                <button id="hintButton" class="ghost" disabled>Show hint</button>
+              </div>
+              <div class="scoreboard">
+                <div class="panel-subheader">
+                  <h3>Scoreboard</h3>
+                </div>
+                <ul id="scoreboardList" class="scoreboard-list"></ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="profile-drawer" id="profileDrawer">
+        <div class="profile-card">
+          <div id="avatarPreview" class="avatar"></div>
+          <div>
+            <h2 id="profileName">Explorer</h2>
+            <p id="rankLabel">Bronze I</p>
+            <p id="coinsLabel">0 coins</p>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div>
+            <p>Wins</p>
+            <strong id="winsStat">0</strong>
+          </div>
+          <div>
+            <p>Losses</p>
+            <strong id="lossesStat">0</strong>
+          </div>
+          <div>
+            <p>Best streak</p>
+            <strong id="bestStreakStat">0</strong>
+          </div>
+          <div>
+            <p>Current streak</p>
+            <strong id="currentStreakStat">0</strong>
+          </div>
+        </div>
+        <section class="section">
+          <h3>Owned cosmetics</h3>
+          <div id="ownedCosmetics" class="owned-grid"></div>
+        </section>
+      </aside>
+
+      <div class="modal" id="profileModal">
+        <div class="modal-content">
+          <h2>Suit up, traveler</h2>
+          <form id="profileForm" class="profile-form">
+            <label>Display name</label>
+            <input id="usernameInput" type="text" maxlength="16" required />
+            <p class="input-help" id="usernameWarning"></p>
+            <label>Avatar</label>
+            <div id="avatarOptions" class="option-grid"></div>
+            <label>Nameplate</label>
+            <div id="decorationOptions" class="option-grid"></div>
+            <div class="modal-actions">
+              <button type="submit" class="primary">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="modal" id="storeModal">
+        <div class="modal-content large">
+          <h2>Cosmetics store</h2>
+          <p>Spend coins earned from wins to unlock avatars and nameplates.</p>
+          <div class="store-grid">
+            <section>
+              <h3>Avatars</h3>
+              <div id="storeAvatars" class="option-grid"></div>
+            </section>
+            <section>
+              <h3>Nameplates</h3>
+              <div id="storeDecorations" class="option-grid"></div>
+            </section>
+          </div>
+          <div class="modal-actions">
+            <button id="closeStoreButton" class="ghost">Close</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal" id="reportsModal">
+        <div class="modal-content large">
+          <h2>Reports center</h2>
+          <div id="reportsList" class="reports-list"></div>
+          <div class="modal-actions">
+            <button id="exportReportsButton" class="ghost">Export JSON</button>
+            <button id="clearReportsButton" class="ghost">Clear</button>
+            <button id="closeReportsButton" class="primary">Close</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal" id="reportPlayerModal">
+        <div class="modal-content">
+          <h2>Report player</h2>
+          <p id="reportPlayerName">—</p>
+          <div class="report-options">
+            <label><input type="radio" name="reportReason" value="hacker" checked /> Suspected hacks</label>
+            <label><input type="radio" name="reportReason" value="googler" /> Googling answers</label>
+            <label
+              ><input type="radio" name="reportReason" value="discriminatory" /> Discriminatory name or avatar</label
+            >
+          </div>
+          <textarea id="reportDetails" rows="3" placeholder="Optional details"></textarea>
+          <div class="modal-actions">
+            <button id="submitReportButton" class="primary">Submit</button>
+            <button id="cancelReportButton" class="ghost">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script type="module" src="assets/js/app.js"></script>
+  </body>
+</html>
